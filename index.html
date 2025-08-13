@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Linux Hardware Monitor</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    /* Variables de color */
+    :root {
+      --bg: #0a0a0f;
+      --card-bg: #12121a;
+      --text: #e0e0ff;
+      --accent: #00ffff;
+      --code-bg: #0d1b2a;
+      --border: #00ffff33;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Courier New', monospace;
+      line-height: 1.6;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(0, 255, 255, 0.05) 0%, transparent 20%),
+        radial-gradient(circle at 90% 80%, rgba(0, 255, 255, 0.05) 0%, transparent 20%);
+    }
+
+    header {
+      text-align: center;
+      padding: 2rem 1rem;
+      background: linear-gradient(135deg, #0f0f23, #1a1a2e);
+      border-bottom: 1px solid var(--border);
+    }
+
+    header h1 {
+      font-size: 2.8rem;
+      color: white;
+      text-shadow: 0 0 10px var(--accent);
+      margin-bottom: 0.5rem;
+    }
+
+    header p {
+      color: #aaa;
+      font-size: 1.1rem;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    nav {
+      background: rgba(10, 10, 15, 0.95);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid var(--border);
+    }
+
+    nav ul {
+      display: flex;
+      justify-content: center;
+      list-style: none;
+      padding: 1rem;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    nav a {
+      color: var(--text);
+      text-decoration: none;
+      font-weight: bold;
+      padding: 0.5rem 1rem;
+      border-radius: 5px;
+      transition: all 0.3s ease;
+      font-size: 1rem;
+    }
+
+    nav a:hover, nav a.active {
+      background: var(--accent);
+      color: black;
+      box-shadow: 0 0 10px var(--accent);
+    }
+
+    main {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+    }
+
+    section {
+      background: var(--card-bg);
+      margin-bottom: 2.5rem;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+      transition: transform 0.3s ease;
+    }
+
+    section:hover {
+      transform: translateY(-5px);
+    }
+
+    section h2 {
+      font-size: 1.8rem;
+      color: var(--accent);
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    section h2 i {
+      font-size: 1.4rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.95rem;
+    }
+
+    th, td {
+      padding: 12px 10px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background: rgba(0, 255, 255, 0.1);
+      color: var(--accent);
+      font-weight: bold;
+    }
+
+    tr:hover {
+      background: rgba(0, 255, 255, 0.05);
+    }
+
+    code {
+      background: var(--code-bg);
+      color: #0ff;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.95em;
+      border: 1px solid #00ffff44;
+    }
+
+    pre {
+      background: var(--code-bg);
+      color: #0ff;
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      border: 1px solid #00ffff44;
+      margin: 1rem 0;
+      font-size: 0.95em;
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: #666;
+      font-size: 0.9rem;
+      border-top: 1px solid var(--border);
+      margin-top: 3rem;
+    }
+
+    @media (max-width: 768px) {
+      nav ul {
+        gap: 1rem;
+        font-size: 0.9rem;
+      }
+      section {
+        padding: 1.5rem;
+      }
+      h1 {
+        font-size: 2.2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1><i class="fas fa-terminal"></i> Linux Hardware Monitor</h1>
+    <p>Comandos esenciales para diagnosticar y monitorear tu sistema Linux</p>
+  </header>
+
+  <nav>
+    <ul>
+      <li><a href="#sistema" class="active">Sistema</a></li>
+      <li><a href="#disco">Disco</a></li>
+      <li><a href="#ram">RAM</a></li>
+      <li><a href="#cpu">CPU</a></li>
+      <li><a href="#temperatura">Temperatura</a></li>
+      <li><a href="#graficos">Gráficos</a></li>
+      <li><a href="#monitoreo">Monitoreo</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <section id="sistema">
+      <h2><i class="fas fa-microchip"></i> Información del Sistema</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Comando</th>
+            <th>Descripción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>uname -a</code></td>
+            <td>Muestra información del sistema: kernel, arquitectura, nombre del host, etc.</td>
+          </tr>
+          <tr>
+            <td><code>lscpu</code></td>
+            <td>Detalles de la CPU: núcleos, modelo, velocidad, arquitectura.</td>
+          </tr>
+          <tr>
+            <td><code>lshw</code></td>
+            <td>Lista detallada de todo el hardware (requiere <code>sudo</code>).</td>
+          </tr>
+          <tr>
+            <td><code>lshw -short</code></td>
+            <td>Versión resumida de <code>lshw</code>.</td>
+          </tr>
+          <tr>
+            <td><code>lspci</code></td>
+            <td>Lista dispositivos PCI (gráficos, red, sonido, etc.).</td>
+          </tr>
+          <tr>
+            <td><code>lsusb</code></td>
+            <td>Lista dispositivos USB conectados.</td>
+          </tr>
+          <tr>
+            <td><code>dmidecode</code></td>
+            <td>Información del BIOS: RAM, placa base, etc. (<code>sudo</code>).</td>
+          </tr>
+          <tr>
+            <td><code>hostnamectl</code></td>
+            <td>Información del hostname, SO, arquitectura.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="disco">
+      <h2><i class="fas fa-hdd"></i> Uso del Disco</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Comando</th>
+            <th>Descripción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>df -h</code></td>
+            <td>Uso de espacio en disco (formato legible: GB/MB).</td>
+          </tr>
+          <tr>
+            <td><code>du -sh /ruta/</code></td>
+            <td>Tamaño de un directorio (ej: <code>du -sh /home</code>).</td>
+          </tr>
+          <tr>
+            <td><code>du -ah /ruta/ | sort -rh | head -10</code></td>
+            <td>Los 10 archivos/carpetas más grandes en una ruta.</td>
+          </tr>
+          <tr>
+            <td><code>lsblk</code></td>
+            <td>Muestra todas las particiones y dispositivos de bloque.</td>
+          </tr>
+          <tr>
+            <td><code>fdisk -l</code></td>
+            <td>Lista particiones de disco (<code>sudo</code>).</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="ram">
+      <h2><i class="fas fa-memory"></i> Memoria RAM</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Comando</th>
+            <th>Descripción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>free -h</code></td>
+            <td>Uso de RAM y swap (formato legible).</td>
+          </tr>
+          <tr>
+            <td><code>cat /proc/meminfo</code></td>
+            <td>Detalles técnicos sobre la memoria del sistema.</td>
+          </tr>
+          <tr>
+            <td><code>htop</code> o <code>top</code></td>
+            <td>Procesos en tiempo real: CPU, RAM, etc. (<code>htop</code> más amigable).</td>
+          </tr>
+          <tr>
+            <td><code>vmstat</code></td>
+            <td>Estadísticas de memoria, procesos, I/O, CPU.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="cpu">
+      <h2><i class="fas fa-tachometer-alt"></i> CPU</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Comando</th>
+            <th>Descripción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>lscpu</code></td>
+            <td>Información detallada de la CPU.</td>
+          </tr>
+          <tr>
+            <td><code>cat /proc/cpuinfo</code></td>
+            <td>Detalles técnicos de cada núcleo.</td>
+          </tr>
+          <tr>
+            <td><code>mpstat</code></td>
+            <td>Estadísticas de uso de CPU (requiere <code>sysstat</code>).</td>
+          </tr>
+          <tr>
+            <td><code>uptime</code></td>
+            <td>Tiempo de encendido y carga promedio del sistema.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="temperatura">
+      <h2><i class="fas fa-thermometer-half"></i> Temperatura</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Comando</th>
+            <th>Descripción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>sensors</code></td>
+            <td>Muestra temperatura de CPU, GPU, disco (requiere <code>lm-sensors</code>).</td>
+          </tr>
+          <tr>
+            <td><code>sensors-detect</code></td>
+            <td>Configura sensores de hardware (primera vez).</td>
+          </tr>
+          <tr>
+            <td><code>nvidia-smi</code></td>
+            <td>Temperatura y uso de GPU NVIDIA.</td>
+          </tr>
+          <tr>
+            <td><code>watch -n 2 sensors</code></td>
+            <td>Actualiza cada 2 segundos la lectura de temperatura.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="graficos">
+      <h2><i class="fas fa-video"></i> Gráficos y GPU</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Comando</th>
+            <th>Descripción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>lspci | grep -i vga</code></td>
+            <td>Muestra la tarjeta gráfica.</td>
+          </tr>
+          <tr>
+            <td><code>glxinfo | grep "OpenGL renderer"</code></td>
+            <td>Renderizador gráfico actual.</td>
+          </tr>
+          <tr>
+            <td><code>nvidia-smi</code></td>
+            <td>Uso, temperatura y memoria de GPU NVIDIA.</td>
+          </tr>
+          <tr>
+            <td><code>vainfo</code></td>
+            <td>Verifica aceleración por hardware (video).</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="monitoreo">
+      <h2><i class="fas fa-chart-line"></i> Monitoreo en Tiempo Real</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Comando</th>
+            <th>Descripción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>htop</code></td>
+            <td>Monitor avanzado de procesos (CPU, RAM, carga).</td>
+          </tr>
+          <tr>
+            <td><code>glances</code></td>
+            <td>Herramienta avanzada de monitoreo (instalable con <code>pip</code>).</td>
+          </tr>
+          <tr>
+            <td><code>nmon</code></td>
+            <td>Monitor interactivo de rendimiento del sistema.</td>
+          </tr>
+          <tr>
+            <td><code>iotop</code></td>
+            <td>Uso de disco por procesos (como <code>top</code> para I/O).</td>
+          </tr>
+        </tbody>
+      </table>
+      <pre># Ejemplo de instalación:
+sudo apt install htop glances nmon iotop lm-sensors</pre>
+    </section>
+  </main>
+
+  <footer>
+    <p>🛠️ Linux Hardware Monitor — Guía de comandos para administradores y entusiastas</p>
+    <p>Diseñado con <i class="fas fa-heart" style="color:#00ffff;"></i> para la comunidad Linux</p>
+  </footer>
+
+  <script>
+    // Activar enlace activo en el menú
+    document.querySelectorAll('nav a').forEach(link => {
+      link.addEventListener('click', function () {
+        document.querySelectorAll('nav a').forEach(l => l.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>
